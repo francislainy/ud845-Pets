@@ -21,6 +21,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -35,9 +38,10 @@ import com.example.android.pets.data.PetDbHelper;
 /**
  * Displays list of pets that were entered and stored in the app.
  */
-public class CatalogActivity extends AppCompatActivity {
+public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     PetDbHelper mDbHelper;
+    PetCursorAdapter cursorAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,49 +61,8 @@ public class CatalogActivity extends AppCompatActivity {
         // To access our database, we instantiate our subclass of SQLiteOpenHelper
         // and pass the context, which is the current activity.
         mDbHelper = new PetDbHelper(this);
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        displayDatabaseInfo();
-    }
-
-    /**
-     * Temporary helper method to display information in the onscreen TextView about the state of
-     * the pets database.
-     */
-    private void displayDatabaseInfo() {
-
-        String[] projection = {
-                PetEntry._ID,
-                PetEntry.COLUMN_PET_NAME,
-                PetEntry.COLUMN__PET_BREED,
-                PetEntry.COLUMN_PET_WEIGHT,
-                PetEntry.COLUMN_PET_GENDER
-        };
-
-        String selection = null;
-        String[] selectionArgs = new String[]{};
-
-        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection, null, null, null);
-
-        try {
-            ListView listView = (ListView) findViewById(R.id.list_view_pet);
-            PetCursorAdapter cursorAdapter = new PetCursorAdapter(this, cursor);
-            listView.setAdapter(cursorAdapter);
-
-            View emptyView = findViewById(R.id.empty_view);
-            listView.setEmptyView(emptyView);
-
-        } catch (Exception e) {
-            Log.i("CatalogActivity", "Cursor query");
-        }
-        finally {
-            // Always close the cursor when you're done reading from it. This releases all its
-            // resources and makes it invalid.
-            // cursor.close();
-        }
+        getSupportLoaderManager().initLoader(0, null, this);
     }
 
     private void insertPet() {
@@ -133,7 +96,6 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
                 insertPet();
-                displayDatabaseInfo();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
@@ -141,5 +103,45 @@ public class CatalogActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        Uri uri = PetEntry.CONTENT_URI;
+
+        String[] projection = {
+                PetEntry._ID,
+                PetEntry.COLUMN_PET_NAME,
+                PetEntry.COLUMN__PET_BREED,
+        };
+
+        String selection = null;
+        String[] selectionArgs = new String[]{};
+
+        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection, null, null, null);
+
+        try {
+            ListView listView = (ListView) findViewById(R.id.list_view_pet);
+            cursorAdapter = new PetCursorAdapter(this, cursor);
+            listView.setAdapter(cursorAdapter);
+
+            View emptyView = findViewById(R.id.empty_view);
+            listView.setEmptyView(emptyView);
+
+        } catch (Exception e) {
+            Log.i("CatalogActivity", "Error Cursor query");
+        }
+
+        return new CursorLoader(this, uri, projection, selection, selectionArgs, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        cursorAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        cursorAdapter.swapCursor(null);
     }
 }
