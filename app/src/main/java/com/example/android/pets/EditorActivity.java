@@ -16,7 +16,7 @@
 package com.example.android.pets;
 
 import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -124,7 +124,7 @@ public class EditorActivity extends AppCompatActivity {
 
     private void insertPet() {
 
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+//        SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         String petName = mNameEditText.getText().toString().trim();
         String petBreed = mBreedEditText.getText().toString().trim();
@@ -136,13 +136,15 @@ public class EditorActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_GENDER, weight);
         values.put(PetEntry.COLUMN_PET_WEIGHT, mGender);
 
-        long newRowId = db.insert(PetEntry.TABLE_NAME, null, values);
-        Log.v("CatalogActivity", "New row id " + newRowId);
+        Uri newRowId = getContentResolver().insert(PetEntry.CONTENT_URI, values);
 
-        if (newRowId != -1)
-            Toast.makeText(EditorActivity.this, "Pet saved with id " + newRowId, Toast.LENGTH_SHORT).show();
+        Log.v("EditorActivity", "New row id " + newRowId);
+
+        if (newRowId != null)
+            Toast.makeText(EditorActivity.this, "Pet saved" + newRowId, Toast.LENGTH_SHORT).show();
         else
-            Toast.makeText(EditorActivity.this, "Error with saving pet", Toast.LENGTH_SHORT).show();
+            Toast.makeText(EditorActivity.this, "Error saving pet", Toast.LENGTH_SHORT).show();
+
 
     }
 

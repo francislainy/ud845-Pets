@@ -1,5 +1,6 @@
 package com.example.android.pets.data;
 
+import android.content.ContentResolver;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -33,6 +34,18 @@ public final class PetContract {
         public static final int GENDER_MALE = 1;
         public static final int GENDER_FEMALE = 2;
 
+        public static boolean isValidGender (int gender) {
+            if (gender == GENDER_UNKNOWN || gender == GENDER_MALE || gender == GENDER_FEMALE) {
+                return true;
+            }
+            return false;
+        }
+
+        public static final String CONTENT_LIST_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" +
+                    CONTENT_AUTHORITY + "/" + PATH_PETS;
+
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/" +
+                    CONTENT_AUTHORITY + "/" + PATH_PETS;
     }
 
 }
