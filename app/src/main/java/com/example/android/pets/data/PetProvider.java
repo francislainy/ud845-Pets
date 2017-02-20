@@ -209,7 +209,7 @@ public class PetProvider extends ContentProvider {
             return 0;
         }
 
-        // If the key is present. check that the name value is not null.
+        // If the key is present, check that the name value is not null.
         if (values.containsKey(PetEntry.COLUMN_PET_NAME)) {
             String name = values.getAsString(PetEntry.COLUMN_PET_NAME);
             if (name == null) {

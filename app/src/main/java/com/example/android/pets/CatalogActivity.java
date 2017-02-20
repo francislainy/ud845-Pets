@@ -26,7 +26,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract.PetEntry;
@@ -82,63 +82,27 @@ public class CatalogActivity extends AppCompatActivity {
         String selection = null;
         String[] selectionArgs = new String[]{};
 
-        // Perform this raw SQL query "SELECT * FROM pets"
-        // to get a Cursor that contains all rows from the pets table.
-
         Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection, null, null, null);
 
-        TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-
         try {
-            // Display the number of rows in the Cursor (which reflects the number of rows in the
-            // pets table in the database).
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+            ListView listView = (ListView) findViewById(R.id.list_view_pet);
+            PetCursorAdapter cursorAdapter = new PetCursorAdapter(this, cursor);
+            listView.setAdapter(cursorAdapter);
 
-            displayView.append("\n" + PetEntry._ID + " - " +
-                    PetEntry.COLUMN_PET_NAME + " - " +
-                    PetEntry.COLUMN__PET_BREED + " - " +
-                    PetEntry.COLUMN_PET_GENDER + " - " +
-                    PetEntry.COLUMN_PET_WEIGHT + "\n"
-            );
+            View emptyView = findViewById(R.id.empty_view);
+            listView.setEmptyView(emptyView);
 
-            // Figure out the index of each columns
-            int idColumnIndex = cursor.getColumnIndex(PetEntry._ID);
-            int nameColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_NAME);
-            int breedColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN__PET_BREED);
-            int genderColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_GENDER);
-            int weightColumnIndex = cursor.getColumnIndex(PetEntry.COLUMN_PET_WEIGHT);
-
-            // Iterate through all the returned rows in the cursor
-            while (cursor.moveToNext()) {
-                // Use that index to extract the String or Int value of the word
-                // at the current row the cursor is on.
-                int currentId = cursor.getInt(idColumnIndex);
-                String currentName = cursor.getString(nameColumnIndex);
-                String currentBreed = cursor.getString(breedColumnIndex);
-                int currentGender = cursor.getInt(genderColumnIndex);
-                int currentWeight = cursor.getInt(weightColumnIndex);
-
-                displayView.append("\n" + currentId + " - " +
-                        currentName + " - " +
-                        currentBreed + " - " +
-                        currentGender + " - " +
-                        currentWeight
-                );
-
-            }
-
-        } finally {
+        } catch (Exception e) {
+            Log.i("CatalogActivity", "Cursor query");
+        }
+        finally {
             // Always close the cursor when you're done reading from it. This releases all its
             // resources and makes it invalid.
-            cursor.close();
+            // cursor.close();
         }
     }
 
     private void insertPet() {
-//
-//
-//        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-
         ContentValues values = new ContentValues();
         values.put(PetEntry.COLUMN_PET_NAME, "Toto");
         values.put(PetEntry.COLUMN__PET_BREED, "Terrier");
@@ -146,8 +110,6 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_WEIGHT, 7);
 
         Uri newRowId = getContentResolver().insert(PetEntry.CONTENT_URI, values);
-
-        Log.v("CatalogActivity", "New row id " + newRowId);
 
         if (newRowId != null)
             Toast.makeText(CatalogActivity.this, "Pet saved" + newRowId, Toast.LENGTH_SHORT).show();
