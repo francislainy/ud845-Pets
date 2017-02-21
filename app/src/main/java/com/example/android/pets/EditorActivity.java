@@ -72,6 +72,12 @@ public class EditorActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
+        String message = getIntent().getStringExtra("key");
+        if (message == null) {
+            message = "Add a Pet";
+        }
+        setTitle(message);
+
         // Find all relevant views that we will need to read user input from
         mNameEditText = (EditText) findViewById(R.id.edit_pet_name);
         mBreedEditText = (EditText) findViewById(R.id.edit_pet_breed);
@@ -123,9 +129,6 @@ public class EditorActivity extends AppCompatActivity {
     }
 
     private void insertPet() {
-
-//        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-
         String petName = mNameEditText.getText().toString().trim();
         String petBreed = mBreedEditText.getText().toString().trim();
         int weight = Integer.parseInt(mWeightEditText.getText().toString());

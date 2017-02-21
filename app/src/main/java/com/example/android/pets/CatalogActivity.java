@@ -15,6 +15,7 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -29,6 +30,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -107,7 +109,7 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Uri uri = PetEntry.CONTENT_URI;
+        final Uri uri = PetEntry.CONTENT_URI;
 
         String[] projection = {
                 PetEntry._ID,
@@ -124,10 +126,21 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
             ListView listView = (ListView) findViewById(R.id.list_view_pet);
             cursorAdapter = new PetCursorAdapter(this, cursor);
             listView.setAdapter(cursorAdapter);
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                    Intent intent = new Intent(CatalogActivity.this, EditorActivity.class);
+                    Uri contentUri = ContentUris.withAppendedId(PetEntry.CONTENT_URI, id);
+                    intent.setData(contentUri);
+                    String message = "Edit Pet";
+                    intent.putExtra("key", message);
+                    Log.i("CatalogActivity", uri + "/" + id);
+                    startActivity(intent);
+                }
+            });
 
             View emptyView = findViewById(R.id.empty_view);
             listView.setEmptyView(emptyView);
-
         } catch (Exception e) {
             Log.i("CatalogActivity", "Error Cursor query");
         }
