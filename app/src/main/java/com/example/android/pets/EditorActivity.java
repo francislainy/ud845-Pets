@@ -97,6 +97,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         }
         setTitle(message);
 
+        invalidateOptionsMenu();
+
         // Find all relevant views that we will need to read user input from
         mNameEditText = (EditText) findViewById(R.id.edit_pet_name);
         mBreedEditText = (EditText) findViewById(R.id.edit_pet_breed);
@@ -113,6 +115,18 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         setupSpinner();
 
         getSupportLoaderManager().initLoader(0, null, this);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+
+        String message = getIntent().getStringExtra("key");
+        if (message == null) {
+            MenuItem menuItem = menu.findItem(R.id.action_delete);
+            menuItem.setVisible(false);
+        }
+        return true;
     }
 
     /**
@@ -164,7 +178,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             public void onClick(DialogInterface dialog, int i) {
                 if (dialog != null) {
                     dialog.dismiss();
-                } 
+                }
             }
         });
 
