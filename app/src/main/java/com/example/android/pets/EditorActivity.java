@@ -164,7 +164,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             public void onClick(DialogInterface dialog, int i) {
                 if (dialog != null) {
                     dialog.dismiss();
-                }
+                } 
             }
         });
 
