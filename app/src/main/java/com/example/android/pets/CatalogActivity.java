@@ -83,6 +83,15 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
     }
 
+    private void deleteAllPets() {
+        int petsDeleted = getContentResolver().delete(PetEntry.CONTENT_URI, null, null);
+        if (petsDeleted != -1)
+            Toast.makeText(CatalogActivity.this, "Pets deleted " + petsDeleted, Toast.LENGTH_SHORT).show();
+        else
+            Toast.makeText(CatalogActivity.this, "Error deleting pets", Toast.LENGTH_SHORT).show();
+
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu options from the res/menu/menu_catalog.xml file.
@@ -101,7 +110,7 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
-                // Do nothing for now
+                deleteAllPets();
                 return true;
         }
         return super.onOptionsItemSelected(item);
