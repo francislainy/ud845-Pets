@@ -42,6 +42,8 @@ import android.widget.Toast;
 import com.example.android.pets.data.PetContract.PetEntry;
 import com.example.android.pets.data.PetDbHelper;
 
+import static android.R.attr.id;
+
 /**
  * Allows user to create a new pet or edit an existing one.
  */
@@ -76,15 +78,15 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     PetDbHelper mDbHelper;
 
     private boolean mPetHasChanged = false;
-    //----------------------Error may be here------------------------
     private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
-            Log.i("EditorActivity", "OnTouch Pet has changed");
             mPetHasChanged = true;
             return false;
         }
     };
+
+    private Uri mCurrentPetUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +113,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mBreedEditText.setOnTouchListener(mTouchListener);
         mWeightEditText.setOnTouchListener(mTouchListener);
         mGenderSpinner.setOnTouchListener(mTouchListener);
+
+        mCurrentPetUri = getIntent().getData();
 
         setupSpinner();
 
@@ -169,7 +173,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     }
 
     private void showUnsavedChangesDialog(DialogInterface.OnClickListener discardButtonClickListener) {
-        Log.i("EditorActivity", "showUnsaved");
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Discard your changes and quit editing");
         builder.setPositiveButton("Discard", discardButtonClickListener);
@@ -189,10 +192,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     @Override
     public void onBackPressed() {
-        Log.i("EditorActivity", "onBackPressed");
-
-        // If the pet hasn't changed, continue with handling back button press
-        //ERROR MAY BE HERE, AS ALERT DIALOG WORKS WHEN THIS IS COMMENTED OUT --------------------
         if (mPetHasChanged == false) {
             super.onBackPressed();
             return;
@@ -205,7 +204,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             }
         };
 
-        Log.i("EditorActivity", "onBackPressed before unsavedChangesDialog() method call");
         showUnsavedChangesDialog(discardButtonClickListener);
     }
 
@@ -230,19 +228,16 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         values.put(PetEntry.COLUMN_PET_WEIGHT, weight);
 
         Uri newRowId = null;
-        Uri uri = getIntent().getData();
-        if (uri != null) {
-            getContentResolver().update(uri, values, null, null);
+        if (mCurrentPetUri != null) {
+            getContentResolver().update(mCurrentPetUri, values, null, null);
             Toast.makeText(EditorActivity.this, "Pet updated", Toast.LENGTH_SHORT).show();
-        } else if (uri == null) {
+        } else if (mCurrentPetUri == null) {
             newRowId = getContentResolver().insert(PetEntry.CONTENT_URI, values);
             if (newRowId != null)
                 Toast.makeText(EditorActivity.this, "Pet saved" + newRowId, Toast.LENGTH_SHORT).show();
             else
                 Toast.makeText(EditorActivity.this, "Error saving pet", Toast.LENGTH_SHORT).show();
         }
-
-        Log.v("EditorActivity", "New row id " + newRowId);
 
     }
 
@@ -267,14 +262,12 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
-                // Do nothing for now
+                showDeleteConfirmationDialog();
                 return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
-                Log.i("EditorActivity", "before Pet has changed question");
                 // Navigate back to parent activity (CatalogActivity)
                 if (!mPetHasChanged) {
-                    Log.i("EditorActivity", "after Pet has changed question");
                     NavUtils.navigateUpFromSameTask(EditorActivity.this);
                     return true;
                 }
@@ -291,6 +284,43 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showDeleteConfirmationDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Delete this pet?");
+        builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                deletePet();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int i) {
+                if (dialog != null) {
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    /**
+     * Perform the deletion of the pet in the database
+     */
+    private void deletePet() {
+        if (mCurrentPetUri != null) {
+            int rowsDeleted = getContentResolver().delete(mCurrentPetUri, null, null);
+            if (rowsDeleted == 0) {
+                Toast.makeText(EditorActivity.this, "Error deleting pet " + id, Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(EditorActivity.this, "Pet deleted " + id, Toast.LENGTH_SHORT).show();
+            }
+        }
+        finish();
     }
 
     @Override
@@ -320,10 +350,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             mBreedEditText.setText(breed);
             mWeightEditText.setText(weight);
             mGenderSpinner.setSelection(gender);
-
         }
-
-        Log.i("EditorActivity", name);
     }
 
     @Override

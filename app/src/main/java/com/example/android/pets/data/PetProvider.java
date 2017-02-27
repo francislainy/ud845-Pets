@@ -178,20 +178,23 @@ public class PetProvider extends ContentProvider {
                 // Delete all the rows that match the selection and selection args
                 // For case PETS:
                 rowsDeleted = database.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
-                return database.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+                //return database.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
             case PET_ID:
                 // Delete a single row given by the ID in the URI
-                rowsDeleted = database.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
                 selection = PetEntry._ID + "=?";
                 selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
-                return database.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = database.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+                //return database.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
             default:
-                if (rowsDeleted != 0) {
-                    getContext().getContentResolver().notifyChange(uri, null);
-                }
                 throw new IllegalArgumentException("Deletion is not supported for " + uri);
         }
+        if (rowsDeleted != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
 
+        return rowsDeleted;
     }
 
     /**
